@@ -1,11 +1,12 @@
 .equ CODE_SEGM, gdt_code - gdt_start
 .equ DATA_SEGM, gdt_data - gdt_start
 
+
 /** Switch to protected mode **/
 .code16                     /** Instrucciones de 16 bits **/
 switch_to_protected_mode:
     cli                     /** Desactiva las interrupciones **/
-    lgdt gdtr               /** Carga la dirección de la GDT **/
+    lgdt gdt_descriptor     /** Carga la dirección de la GDT **/
 
     mov %cr0, %eax          /** Mueve el contenido del registro CR0 a EAX **/
     orl $0x1, %eax          /** Establece el bit PE (Protection Enable) en EAX **/
@@ -52,13 +53,15 @@ gdt_start:                  /** Inicio de la GDT (Global Descriptor Table) **/
                             /** Not executable        (Type=001) **/
                             /** Data segment          (Type=001) **/
                             /** Writeable             (Type=001) **/
-                            /** No accessed           (A=0) **/
+                            /** No accessed           (A=0) **/ 
         .byte 0b11001111    /** Limite del segmento (19-16) y Atributos **/
                             /** Limit in 4KB pages    (G=1) **/
                             /** 32-bits mode          (Big=1) **/
                             /** Reserved bit **/
                             /** Not available for user(AVL=0) **/
         .byte 0x0           /** Direccion de la base (31-24) **/
+
+    gdt_end:
 
     gdt_descriptor:                       /** Inicio del GDTR (Global Descriptor Table Register) **/
         .word gdt_end -gdt_start -1       /** Tamaño de la GDT **/
@@ -70,7 +73,7 @@ gdt_start:                  /** Inicio de la GDT (Global Descriptor Table) **/
 .code32
 protected_mode:
     /** Inicializar registros y stack pointer **/
-    mov $DATA_SEG, %ax
+    mov $DATA_SEGM, %ax
     mov %ax, %ds
     mov %ax, %es
     mov %ax, %fs
